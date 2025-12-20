@@ -1,36 +1,143 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Frontend - ONCHAIN ETF Platform
 
-## Getting Started
+Frontend de la plataforma de tokenización de activos reales construido con Next.js 14, ShadCN UI y Tailwind CSS.
 
-First, run the development server:
+## Características
+
+- ✅ Autenticación JWT con refresh automático
+- ✅ Sistema de roles y permisos dinámico
+- ✅ Sidebar escalable con navegación por permisos y tipo de organización
+- ✅ Dashboards específicos por tipo de organización (ETF, WAREHOUSE, CLIENT, BANK)
+- ✅ Firma digital de documentos PDF (CD, BP, Endosos)
+- ✅ Visualización de historial blockchain de tokens
+- ✅ Modo oscuro/claro con next-themes
+- ✅ Diseño responsivo (mobile, tablet, desktop)
+- ✅ UI profesional y minimalista con ShadCN
+
+## Configuración
+
+### Variables de Entorno
+
+Crea un archivo `.env.local` en la raíz del proyecto:
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:3000/api
+```
+
+### Instalación
+
+```bash
+npm install
+```
+
+### Desarrollo
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+La aplicación estará disponible en `http://localhost:3001` (o el puerto que Next.js asigne).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Estructura del Proyecto
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+frontend/
+├── app/
+│   ├── (auth)/          # Rutas públicas de autenticación
+│   │   ├── login/
+│   │   └── register/
+│   ├── dashboard/       # Rutas protegidas del dashboard
+│   │   ├── overview/     # Dashboard principal
+│   │   ├── profile/     # Perfil de usuario
+│   │   ├── assets/      # Gestión de activos
+│   │   ├── tokens/      # Gestión de tokens
+│   │   ├── documents/   # Gestión de documentos
+│   │   ├── endorsements/# Gestión de endosos
+│   │   ├── organizations/# Gestión de organizaciones (ETF only)
+│   │   └── users/       # Gestión de usuarios (ETF only)
+│   └── providers.tsx    # Providers globales
+├── components/
+│   ├── auth/            # Componentes de autenticación
+│   ├── layout/          # Sidebar, Header
+│   ├── documents/       # Componentes de documentos
+│   └── ui/              # Componentes ShadCN
+├── lib/
+│   ├── api/             # Clientes API
+│   ├── auth/            # Contexto de autenticación
+│   └── navigation/      # Configuración de navegación
+└── types/               # Tipos TypeScript
+```
 
-## Learn More
+## Funcionalidades por Organización
 
-To learn more about Next.js, take a look at the following resources:
+### ETF (Administrador)
+- Dashboard completo con métricas
+- Ver/crear/editar organizaciones y usuarios
+- Ver todos los activos, tokens, documentos y endosos
+- Ejecutar tokenización y endosos
+- Ver historial blockchain de tokens
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### WAREHOUSE (Almacén)
+- Dashboard con activos propios
+- Crear activos
+- Generar CD/BP
+- Firmar documentos CD/BP como WAREHOUSE
+- Ver estado de activos
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### CLIENT (Cliente)
+- Auto-registro público
+- Dashboard con activos y tokens propios
+- Ver documentos de sus activos
+- Firmar documentos CD/BP como CLIENT
+- Solicitar endosos
+- Firmar endosos como CLIENT
+- Ver tokens y su historial blockchain
+- Retirar activos (withdraw) cuando tenga el token
 
-## Deploy on Vercel
+### BANK (Banco)
+- Dashboard con endosos
+- Ver endosos donde es beneficiario
+- Firmar endosos como BANK
+- Ver tokens recibidos como garantía
+- Aprobar repago de endosos
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Navegación Escalable
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Para agregar nuevos items al sidebar, edita `lib/navigation/nav-config.ts`:
+
+```typescript
+{
+  title: 'Nueva Sección',
+  items: [
+    {
+      title: 'Nuevo Item',
+      href: '/dashboard/nuevo-item',
+      icon: IconComponent,
+      permission: 'nuevo-item:read', // Opcional
+      organizationTypes: [OrganizationType.ETF], // Opcional
+    }
+  ]
+}
+```
+
+## Tecnologías
+
+- **Next.js 14** - Framework React con App Router
+- **TypeScript** - Tipado estático
+- **ShadCN UI** - Componentes UI accesibles
+- **Tailwind CSS** - Estilos utilitarios
+- **React Query** - Gestión de estado del servidor
+- **Axios** - Cliente HTTP
+- **next-themes** - Gestión de tema oscuro/claro
+- **date-fns** - Manipulación de fechas
+- **lucide-react** - Iconos
+
+## Próximos Pasos
+
+- [ ] Implementar formularios completos de CRUD
+- [ ] Agregar validaciones exhaustivas con Zod
+- [ ] Implementar búsqueda y filtros avanzados
+- [ ] Agregar paginación en tablas
+- [ ] Implementar notificaciones en tiempo real
+- [ ] Agregar exportación de datos a PDF/Excel
+- [ ] Implementar dashboard de métricas avanzadas
