@@ -9,8 +9,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-	title: "ONCHAIN ETF APP",
-	description: "Plataforma de tokenización de activos reales",
+	title: "ONCHAIN APP",
+	description: "Plataforma de tokenización de activos ",
 };
 
 export default function RootLayout({

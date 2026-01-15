@@ -16,7 +16,15 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth/auth-context";
-import { Coins, ExternalLink } from "lucide-react";
+import {
+	Coins,
+	ExternalLink,
+	User,
+	Building2,
+	Briefcase,
+	Package,
+} from "lucide-react";
+import { Separator } from "@/components/ui/separator";
 
 export default function TokensPage() {
 	const { user } = useAuth();
@@ -47,8 +55,20 @@ export default function TokensPage() {
 			<div className="flex items-center justify-between">
 				<div>
 					<h2 className="text-3xl font-bold">Tokens</h2>
-					<p className="text-slate-500 dark:text-slate-400">
-						Muestra todos mis tokens
+					<p className="text-zinc-500 dark:text-zinc-400">
+						{user?.organizations?.some(
+							(org: any) => org.type === "ETF"
+						)
+							? "Visualización de todos los tokens del sistema"
+							: user?.organizations?.some(
+									(org: any) => org.type === "BANK"
+							  )
+							? "Visualización de todos los tokens del sistema"
+							: user?.organizations?.some(
+									(org: any) => org.type === "WAREHOUSE"
+							  )
+							? "Tokens de operaciones donde participas como warrantera"
+							: "Tokens emitidos o recibidos por tus organizaciones"}
 					</p>
 				</div>
 			</div>
@@ -68,10 +88,10 @@ export default function TokensPage() {
 						<Table>
 							<TableHeader>
 								<TableRow>
-									<TableHead>ID</TableHead>
-									<TableHead>Activo</TableHead>
+									<TableHead>Token ID</TableHead>
+									<TableHead>Operación</TableHead>
+									<TableHead>Activos</TableHead>
 									<TableHead>Cantidad</TableHead>
-									<TableHead>Tipo</TableHead>
 									<TableHead>Emisor</TableHead>
 									<TableHead>Holder Actual</TableHead>
 									<TableHead>Estado</TableHead>
@@ -104,49 +124,162 @@ export default function TokensPage() {
 
 										return (
 											<TableRow key={token.id}>
-												<TableCell className="font-mono text-xs">
-													{token.xrplIssuanceId?.substring(
-														0,
-														16
-													)}
-													...
+												<TableCell>
+													<div>
+														<p className="font-medium">
+															#{token.id}
+														</p>
+														<p className="text-xs text-muted-foreground font-mono">
+															{token.xrplTokenId?.substring(
+																0,
+																16
+															)}
+															...
+														</p>
+													</div>
 												</TableCell>
 												<TableCell>
-													{token.asset?.vinSerial ||
-														"-"}
+													{token.operationId ? (
+														<Link
+															href={`/dashboard/operations/${token.operationId}`}
+														>
+															<Badge
+																variant="outline"
+																className="cursor-pointer hover:bg-primary/10 flex items-center gap-1 w-fit"
+															>
+																<Briefcase className="h-3 w-3" />
+																OP-
+																{
+																	token.operationId
+																}
+															</Badge>
+														</Link>
+													) : (
+														<span className="text-muted-foreground text-sm">
+															-
+														</span>
+													)}
 												</TableCell>
 												<TableCell>
-													{token.amount}
+													{token.assets &&
+													token.assets.length > 0 ? (
+														<div>
+															<Badge
+																variant="secondary"
+																className="flex items-center gap-1 w-fit"
+															>
+																<Package className="h-3 w-3" />
+																{
+																	token.assets
+																		.length
+																}{" "}
+																activo
+																{token.assets
+																	.length !==
+																1
+																	? "s"
+																	: ""}
+															</Badge>
+															<p className="text-xs text-muted-foreground mt-1">
+																{token.assets[0]
+																	?.name ||
+																	token
+																		.assets[0]
+																		?.vinSerial}
+															</p>
+														</div>
+													) : token.asset ? (
+														<div>
+															<p className="text-sm">
+																{token.asset
+																	.name ||
+																	token.asset
+																		.vinSerial}
+															</p>
+															{token.asset
+																.name && (
+																<p className="text-xs text-muted-foreground">
+																	{
+																		token
+																			.asset
+																			.vinSerial
+																	}
+																</p>
+															)}
+														</div>
+													) : (
+														"-"
+													)}
 												</TableCell>
 												<TableCell>
-													<Badge
-														variant={
-															isEmitted
-																? "default"
-																: "secondary"
-														}
-													>
-														{tokenType}
-													</Badge>
-												</TableCell>
-												<TableCell className="font-mono text-xs">
-													{token.issuerWallet?.publicAddress?.substring(
-														0,
-														12
-													)}
-													...
-												</TableCell>
-												<TableCell className="font-mono text-xs">
-													{token.currentHolderWallet?.publicAddress?.substring(
-														0,
-														12
-													)}
-													...
+													<span className="font-semibold">
+														{token.amount}
+													</span>
 												</TableCell>
 												<TableCell>
-													{getStatusBadge(
-														token.status
-													)}
+													<div>
+														<p className="text-sm font-medium flex items-center gap-1">
+															<Building2 className="h-3 w-3" />
+															{token.issuerWallet
+																?.organization
+																?.name ||
+																(token
+																	.issuerWallet
+																	?.organizationId
+																	? "Cargando..."
+																	: "N/A")}
+														</p>
+														<p className="text-xs text-muted-foreground font-mono">
+															{token.issuerWallet?.publicAddress?.substring(
+																0,
+																12
+															)}
+															...
+														</p>
+													</div>
+												</TableCell>
+												<TableCell>
+													<div>
+														<p className="text-sm font-medium flex items-center gap-1">
+															<User className="h-3 w-3" />
+															{token
+																.currentHolderWallet
+																?.organization
+																?.name ||
+																(token
+																	.currentHolderWallet
+																	?.organizationId
+																	? "Cargando..."
+																	: "N/A")}
+														</p>
+														<p className="text-xs text-muted-foreground font-mono">
+															{token.currentHolderWallet?.publicAddress?.substring(
+																0,
+																12
+															)}
+															...
+														</p>
+													</div>
+												</TableCell>
+												<TableCell>
+													<div className="flex flex-col gap-1">
+														{getStatusBadge(
+															token.status
+														)}
+														{tokenType !==
+															"Recibido" && (
+															<Badge
+																variant={
+																	isEmitted
+																		? "default"
+																		: "secondary"
+																}
+																className="text-xs w-fit"
+															>
+																{tokenType}
+															</Badge>
+														)}
+													</div>
 												</TableCell>
 												<TableCell>
 													<div className="flex gap-2">
@@ -160,8 +293,10 @@ export default function TokensPage() {
 																Ver
 															</Button>
 														</Link>
-														<Link
-															href={`/dashboard/tokens/${token.id}/history`}
+														<a
+															href={`https://testnet.xrpl.org/mpt/${token.xrplTokenId}`}
+															target="_blank"
+															rel="noopener noreferrer"
 														>
 															<Button
 																variant="ghost"
@@ -169,7 +304,7 @@ export default function TokensPage() {
 															>
 																<ExternalLink className="h-4 w-4" />
 															</Button>
-														</Link>
+														</a>
 													</div>
 												</TableCell>
 											</TableRow>
@@ -179,7 +314,7 @@ export default function TokensPage() {
 									<TableRow>
 										<TableCell
 											colSpan={6}
-											className="text-center text-slate-500 py-8"
+											className="text-center text-zinc-500 py-8"
 										>
 											<Coins className="h-12 w-12 mx-auto mb-2 opacity-50" />
 											<p>No hay tokens emitidos</p>

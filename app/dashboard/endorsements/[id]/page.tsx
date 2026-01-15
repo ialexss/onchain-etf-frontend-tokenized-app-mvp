@@ -33,10 +33,10 @@ export default function EndorsementDetailPage() {
   });
 
   const signMutation = useMutation({
-    mutationFn: ({ email, signerType }: { email: string; signerType: SignerType }) =>
+    mutationFn: ({ email, signerType }: { email: string; signerType: 'CLIENT' | 'BANK' }) =>
       endorsementsApi.sign(endorsementId, { 
         signerEmail: email, 
-        signerType: signerType === SignerType.CLIENT ? 'CLIENT' : 'BANK' 
+        signerType: signerType
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['endorsement', endorsementId] });
@@ -98,7 +98,7 @@ export default function EndorsementDetailPage() {
     }
     await signMutation.mutateAsync({ 
       email, 
-      signerType: signerType === SignerType.CLIENT ? 'CLIENT' : 'BANK' 
+      signerType: signerType as 'CLIENT' | 'BANK'
     });
   };
 

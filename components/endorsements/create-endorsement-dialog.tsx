@@ -39,29 +39,17 @@ import { Loader2 } from 'lucide-react';
 
 const createEndorsementSchema = z.object({
 	assetId: z
-		.number({
-			required_error: 'Debe seleccionar un activo',
-			invalid_type_error: 'Debe seleccionar un activo',
-		})
+		.number()
 		.positive('Debe seleccionar un activo'),
 	bankId: z
-		.number({
-			required_error: 'Debe seleccionar un banco',
-			invalid_type_error: 'Debe seleccionar un banco',
-		})
+		.number()
 		.positive('Debe seleccionar un banco'),
 	principalAmount: z
-		.number({
-			required_error: 'El monto principal es requerido',
-			invalid_type_error: 'El monto debe ser un número',
-		})
+		.number()
 		.positive('El monto debe ser mayor a 0')
 		.min(0.01, 'El monto debe ser mayor a 0'),
 	interestRate: z
-		.number({
-			required_error: 'La tasa de interés es requerida',
-			invalid_type_error: 'La tasa debe ser un número',
-		})
+		.number()
 		.positive('La tasa debe ser mayor a 0')
 		.max(100, 'La tasa no puede exceder 100%'),
 	repaymentDate: z
