@@ -135,7 +135,7 @@ export function LiquidationSection({ operationId }: LiquidationSectionProps) {
 		certifyDeliveryMutation.mutate();
 	};
 
-	const isSAFI = user?.organizations?.some((org) => org.type === "BANK");
+	const isBank = user?.organizations?.some((org) => org.type === "BANK");
 	const isWarrant = user?.organizations?.some(
 		(org) => org.type === "WAREHOUSE"
 	);
@@ -223,7 +223,7 @@ export function LiquidationSection({ operationId }: LiquidationSectionProps) {
 				</div>
 
 				{/* Acciones para Entidad Financiera */}
-				{isSAFI && operation?.status === "ACTIVE" && (
+				{isBank && operation?.status === "ACTIVE" && (
 					<div className="space-y-2">
 						{!paymentLetterApproved ? (
 							<Alert>
@@ -294,7 +294,7 @@ export function LiquidationSection({ operationId }: LiquidationSectionProps) {
 				)}
 
 				{/* Información para otros usuarios */}
-				{!isSAFI && !isWarrant && isLiquidated && (
+				{!isBank && !isWarrant && isLiquidated && (
 					<Alert>
 						<CheckCircle className="h-4 w-4" />
 						<AlertDescription>
@@ -304,7 +304,7 @@ export function LiquidationSection({ operationId }: LiquidationSectionProps) {
 						</AlertDescription>
 					</Alert>
 				)}
-				{!isSAFI && !isWarrant && isReleased && (
+				{!isBank && !isWarrant && isReleased && (
 					<Alert>
 						<CheckCircle className="h-4 w-4" />
 						<AlertDescription>

@@ -195,11 +195,13 @@ export function PaymentLetterSection({
 		}
 	};
 
-	// Solo SAFI puede ver/gestionar cartas de pago
-	// Esto se debe verificar en el backend, aquí solo ocultamos la UI
-	const isSAFI = user?.organizations?.some((org) => org.type === "BANK");
-
-	if (!isSAFI) {
+	// El Banco puede gestionar (subir, generar, aprobar)
+	// La Warrant puede ver (solo lectura) para verificar antes de liberar activos
+	const isBank = user?.organizations?.some((org) => org.type === "BANK");
+	const isWarrant = user?.organizations?.some((org) => org.type === "WAREHOUSE");
+	
+	// Solo Banco y Warrant pueden ver cartas de pago
+	if (!isBank && !isWarrant) {
 		return (
 			<Card>
 				<CardHeader>
@@ -209,7 +211,7 @@ export function PaymentLetterSection({
 					<Alert>
 						<AlertCircle className="h-4 w-4" />
 						<AlertDescription>
-							Solo los usuarios de Entidad Financiera pueden gestionar cartas de
+							Solo los usuarios de Entidad Financiera y Warrantera pueden ver cartas de
 							pago.
 						</AlertDescription>
 					</Alert>
@@ -287,7 +289,8 @@ export function PaymentLetterSection({
 								</Button>
 							</div>
 
-							{paymentLetter.status ===
+							{/* Solo el Banco puede aprobar */}
+							{isBank && paymentLetter.status ===
 								PaymentLetterStatus.PENDING && (
 								<Button
 									onClick={() => approveMutation.mutate()}
@@ -312,39 +315,54 @@ export function PaymentLetterSection({
 									</AlertDescription>
 								</Alert>
 							)}
+
+							{/* Información adicional para la Warrant */}
+							{isWarrant && (
+								<Alert className="bg-blue-50 border-blue-200">
+									<AlertCircle className="h-4 w-4 text-blue-600" />
+									<AlertDescription className="text-blue-800">
+										Verifique la carta de pago antes de liberar los activos.
+									</AlertDescription>
+								</Alert>
+							)}
 						</>
 					) : (
 						<div className="space-y-4">
 							<Alert>
 								<AlertCircle className="h-4 w-4" />
 								<AlertDescription>
-									No hay carta de pago disponible. Puede subir
-									una o generar una en el sistema.
+									{isBank 
+										? "No hay carta de pago disponible. Puede subir una o generar una en el sistema."
+										: "No hay carta de pago disponible. Esperando a que la Entidad Financiera suba la carta."
+									}
 								</AlertDescription>
 							</Alert>
 
-							<div className="flex gap-2">
-								<Button
-									variant="outline"
-									onClick={() => setUploadDialogOpen(true)}
-									className="flex-1"
-								>
-									<Upload className="h-4 w-4 mr-2" />
-									Subir PDF
-								</Button>
-								<Button
-									variant="outline"
-									onClick={() => generateMutation.mutate()}
-									disabled={generateMutation.isPending}
-									className="flex-1"
-								>
-									{generateMutation.isPending && (
-										<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-									)}
-									<FileText className="h-4 w-4 mr-2" />
-									Generar en Sistema
-								</Button>
-							</div>
+							{/* Solo el Banco puede subir/generar */}
+							{isBank && (
+								<div className="flex gap-2">
+									<Button
+										variant="outline"
+										onClick={() => setUploadDialogOpen(true)}
+										className="flex-1"
+									>
+										<Upload className="h-4 w-4 mr-2" />
+										Subir PDF
+									</Button>
+									<Button
+										variant="outline"
+										onClick={() => generateMutation.mutate()}
+										disabled={generateMutation.isPending}
+										className="flex-1"
+									>
+										{generateMutation.isPending && (
+											<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+										)}
+										<FileText className="h-4 w-4 mr-2" />
+										Generar en Sistema
+									</Button>
+								</div>
+							)}
 						</div>
 					)}
 				</CardContent>

@@ -128,7 +128,7 @@ export default function TokenDetailPage() {
 								<p className="text-sm text-muted-foreground">
 									{operation.warrant?.name} →{" "}
 									{operation.client?.name} →{" "}
-									{operation.safi?.name}
+									{operation.bank?.name}
 								</p>
 							</div>
 							<Link

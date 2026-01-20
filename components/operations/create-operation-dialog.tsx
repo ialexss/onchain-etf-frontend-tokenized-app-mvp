@@ -43,7 +43,7 @@ const createOperationSchema = z.object({
 	titleNumber: z.string().optional(),
 	warrantId: z.number().positive("Debe seleccionar una warrantera"),
 	clientId: z.number().positive("Debe seleccionar un cliente"),
-	safiId: z.number().positive("Debe seleccionar una Entidad Financiera"),
+	bankId: z.number().positive("Debe seleccionar una Entidad Financiera"),
 	assets: z
 		.array(
 			z.object({
@@ -99,21 +99,21 @@ export function CreateOperationDialog({
 		enabled: open,
 	});
 
-	// Obtener clientes y SAFIs usando endpoints específicos
+	// Obtener clientes y Entidades Financieras usando endpoints específicos
 	const { data: clients = [], isLoading: isLoadingClients } = useQuery({
 		queryKey: ["organizations", "clients"],
 		queryFn: organizationsApi.getClients,
 		enabled: open,
 	});
 
-	const { data: safis = [], isLoading: isLoadingSafis } = useQuery({
+	const { data: banks = [], isLoading: isLoadingBanks } = useQuery({
 		queryKey: ["organizations", "banks"],
 		queryFn: organizationsApi.getBanks,
 		enabled: open,
 	});
 
 	const warehouses = organizations.filter((org) => org.type === "WAREHOUSE");
-	const isLoadingAllOrgs = isLoadingOrgs || isLoadingClients || isLoadingSafis;
+	const isLoadingAllOrgs = isLoadingOrgs || isLoadingClients || isLoadingBanks;
 
 	// Auto-seleccionar warrantera si el usuario es warehouse
 	const userWarehouse = user?.organizations?.find(
@@ -281,7 +281,7 @@ export function CreateOperationDialog({
 
 							<FormField
 								control={form.control}
-								name="safiId"
+								name="bankId"
 								render={({ field }) => (
 									<FormItem>
 										<FormLabel>Entidad Financiera *</FormLabel>
@@ -298,12 +298,12 @@ export function CreateOperationDialog({
 												</SelectTrigger>
 											</FormControl>
 											<SelectContent>
-												{safis.length === 0 && !isLoadingSafis ? (
+												{banks.length === 0 && !isLoadingBanks ? (
 													<SelectItem value="none" disabled>
 														No hay Entidades Financieras disponibles
 													</SelectItem>
 												) : (
-													safis.map((org) => (
+													banks.map((org) => (
 														<SelectItem
 															key={org.id}
 															value={org.id.toString()}

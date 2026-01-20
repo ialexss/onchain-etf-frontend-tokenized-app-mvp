@@ -61,7 +61,7 @@ export default function OperationDetailPage() {
 		(org) => org.type === "WAREHOUSE"
 	);
 	const isClient = user?.organizations?.some((org) => org.type === "CLIENT");
-	const isSafi = user?.organizations?.some((org) => org.type === "BANK");
+	const isBank = user?.organizations?.some((org) => org.type === "BANK");
 
 	if (isLoading) {
 		return (
@@ -125,9 +125,9 @@ export default function OperationDetailPage() {
 					<TabsTrigger value="documents">Documentos</TabsTrigger>
 					<TabsTrigger value="signatures">Firmas</TabsTrigger>
 					<TabsTrigger value="tokenization">Tokenización</TabsTrigger>
-					{isSafi && (
+					{(isBank || isWarrant) && (
 						<TabsTrigger value="liquidation">
-							Liquidación
+							{isBank ? "Liquidación" : "Carta de Pago"}
 						</TabsTrigger>
 					)}
 				</TabsList>
@@ -180,7 +180,7 @@ export default function OperationDetailPage() {
 										Entidad Financiera
 									</p>
 									<p className="font-medium">
-										{operation.safi?.name || "-"}
+										{operation.bank?.name || "-"}
 									</p>
 								</div>
 								<div>
@@ -309,11 +309,12 @@ export default function OperationDetailPage() {
 					<TokenizationSection operationId={operationId} />
 				</TabsContent>
 
-				{/* Tab: Liquidación (solo Entidad Financiera) */}
-				{isSafi && (
+				{/* Tab: Liquidación (Banco) / Carta de Pago (Warrant) */}
+				{(isBank || isWarrant) && (
 					<TabsContent value="liquidation" className="space-y-4">
 						<PaymentLetterSection operationId={operationId} />
-						<LiquidationSection operationId={operationId} />
+						{/* Solo el Banco puede ver la sección de Liquidación completa */}
+						{isBank && <LiquidationSection operationId={operationId} />}
 					</TabsContent>
 				)}
 			</Tabs>

@@ -571,7 +571,7 @@ export default function AssetDetailPage() {
 											Entidad Financiera
 										</p>
 										<p className="font-medium">
-											{operation.safi?.name || "-"}
+											{operation.bank?.name || "-"}
 										</p>
 									</div>
 								</div>

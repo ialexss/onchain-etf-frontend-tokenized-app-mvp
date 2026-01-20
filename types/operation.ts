@@ -27,8 +27,8 @@ export interface Operation {
 	warrant: Organization;
 	clientId: number;
 	client: Organization;
-	safiId: number;
-	safi: Organization;
+	bankId: number;
+	bank: Organization;
 	status: OperationStatus;
 	merkleRoot?: string;
 	description?: string;
@@ -48,7 +48,7 @@ export interface PaymentLetter {
 	operationId: number;
 	pdfPath: string;
 	pdfHash: string;
-	issuedBySafi: boolean;
+	issuedByBank: boolean;
 	issuedAt?: Date;
 	isGenerated: boolean;
 	status: PaymentLetterStatus;
@@ -78,7 +78,7 @@ export interface DocumentBundle {
 export interface CreateOperationDto {
 	operationNumber?: string;
 	clientId: number;
-	safiId: number;
+	bankId: number;
 	description?: string;
 	annualRate?: number;
 	principalAmount?: number;
@@ -107,7 +107,7 @@ export interface PaymentLetterResponse {
 	pdfPath: string;
 	pdfHash: string;
 	isGenerated: boolean;
-	issuedBySafi: boolean;
+	issuedByBank: boolean;
 	issuedAt: Date;
 	status: string;
 }
@@ -150,7 +150,7 @@ export interface TokenizationPreview {
 			id: number;
 			name: string;
 		};
-		safi: {
+		bank: {
 			id: number;
 			name: string;
 		};

@@ -67,7 +67,7 @@ export default function OperationsPage() {
 				op.client?.name
 					?.toLowerCase()
 					.includes(searchQuery.toLowerCase()) ||
-				op.safi?.name
+				op.bank?.name
 					?.toLowerCase()
 					.includes(searchQuery.toLowerCase());
 
@@ -253,7 +253,7 @@ export default function OperationsPage() {
 												{operation.client?.name || "-"}
 											</TableCell>
 											<TableCell>
-												{operation.safi?.name || "-"}
+												{operation.bank?.name || "-"}
 											</TableCell>
 											<TableCell>
 												{getStatusBadge(
@@ -353,7 +353,7 @@ export default function OperationsPage() {
 														Entidad Financiera
 													</p>
 													<p className="font-medium">
-														{operation.safi?.name ||
+														{operation.bank?.name ||
 															"-"}
 													</p>
 												</div>

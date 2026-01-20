@@ -181,7 +181,7 @@ export function TokenizationPreviewDialog({
 											Entidad Financiera
 										</Label>
 										<p className="text-sm">
-											{previewData.operation.safi.name}
+											{previewData.operation.bank.name}
 										</p>
 									</div>
 								</div>

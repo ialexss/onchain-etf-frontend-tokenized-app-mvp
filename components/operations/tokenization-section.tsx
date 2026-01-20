@@ -384,7 +384,7 @@ export function TokenizationSection({ operationId }: TokenizationSectionProps) {
 															{tokenDetails
 																.metadata
 																.additionalInfo
-																.safi && (
+																.bank && (
 																<div>
 																	<p className="text-muted-foreground">
 																		Entidad
@@ -395,7 +395,7 @@ export function TokenizationSection({ operationId }: TokenizationSectionProps) {
 																			tokenDetails
 																				.metadata
 																				.additionalInfo
-																				.safi
+																				.bank
 																		}
 																	</p>
 																</div>

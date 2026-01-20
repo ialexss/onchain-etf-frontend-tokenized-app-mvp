@@ -51,7 +51,7 @@ import { useAuth } from "@/lib/auth/auth-context";
 const createOperationSchema = z.object({
 	operationNumber: z.string().optional(),
 	clientId: z.number().min(1, "Debe seleccionar un cliente"),
-	safiId: z.number().min(1, "Debe seleccionar una Entidad Financiera"),
+	bankId: z.number().min(1, "Debe seleccionar una Entidad Financiera"),
 	assets: z
 		.array(
 			z.object({
@@ -108,20 +108,20 @@ export function CreateOperationWizard() {
 		queryFn: organizationsApi.getAll,
 	});
 
-	// Obtener clientes y SAFIs usando endpoints específicos
+	// Obtener clientes y Entidades Financieras usando endpoints específicos
 	const { data: clients = [], isLoading: isLoadingClients } = useQuery({
 		queryKey: ["organizations", "clients"],
 		queryFn: organizationsApi.getClients,
 	});
 
-	const { data: safis = [], isLoading: isLoadingSafis } = useQuery({
+	const { data: banks = [], isLoading: isLoadingBanks } = useQuery({
 		queryKey: ["organizations", "banks"],
 		queryFn: organizationsApi.getBanks,
 	});
 
 	const warehouses = organizations.filter((org) => org.type === "WAREHOUSE");
 	const isLoadingAllOrgs =
-		isLoadingOrgs || isLoadingClients || isLoadingSafis;
+		isLoadingOrgs || isLoadingClients || isLoadingBanks;
 
 	// Verificar que el usuario pertenezca a una organización WAREHOUSE
 	const userWarehouse = user?.organizations?.find(
@@ -150,12 +150,12 @@ export function CreateOperationWizard() {
 		}
 
 		const values = form.getValues();
-		// El backend no acepta warrantId ni titleNumber, solo operationNumber, clientId, safiId y assets
-		const { operationNumber, clientId, safiId, assets } = values;
+		// El backend no acepta warrantId ni titleNumber, solo operationNumber, clientId, bankId y assets
+		const { operationNumber, clientId, bankId, assets } = values;
 		createMutation.mutate({
 			...(operationNumber && { operationNumber }),
 			clientId,
-			safiId,
+			bankId,
 			assets,
 		});
 	};
@@ -173,7 +173,7 @@ export function CreateOperationWizard() {
 		let isValid = false;
 
 		if (currentStep === 1) {
-			isValid = await form.trigger(["clientId", "safiId"]);
+			isValid = await form.trigger(["clientId", "bankId"]);
 		} else if (currentStep === 2) {
 			isValid = await form.trigger("assets");
 		}
@@ -199,7 +199,7 @@ export function CreateOperationWizard() {
 				? warehouses
 				: type === "CLIENT"
 				? clients
-				: safis;
+				: banks;
 		return orgs.find((org) => org.id === id)?.name || "-";
 	};
 
@@ -325,7 +325,7 @@ export function CreateOperationWizard() {
 									)}
 								/>
 
-								{/* Cliente y SAFI */}
+								{/* Cliente y Entidad Financiera */}
 								<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 									<FormField
 										control={form.control}
@@ -382,7 +382,7 @@ export function CreateOperationWizard() {
 
 									<FormField
 										control={form.control}
-										name="safiId"
+										name="bankId"
 										render={({ field }) => (
 											<FormItem className="w-full">
 												<FormLabel>Entidad Financiera *</FormLabel>
@@ -401,8 +401,8 @@ export function CreateOperationWizard() {
 														</SelectTrigger>
 													</FormControl>
 													<SelectContent position="popper">
-														{safis.length === 0 &&
-														!isLoadingSafis ? (
+														{banks.length === 0 &&
+														!isLoadingBanks ? (
 															<SelectItem
 																value="none"
 																disabled
@@ -411,7 +411,7 @@ export function CreateOperationWizard() {
 																disponibles
 															</SelectItem>
 														) : (
-															safis.map((org) => (
+															banks.map((org) => (
 																<SelectItem
 																	key={org.id}
 																	value={org.id.toString()}
@@ -699,7 +699,7 @@ export function CreateOperationWizard() {
 												</p>
 												<p className="font-medium">
 													{getSelectedOrgName(
-														form.watch("safiId"),
+														form.watch("bankId"),
 														"BANK"
 													)}
 												</p>

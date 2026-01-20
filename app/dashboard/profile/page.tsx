@@ -68,7 +68,7 @@ export default function ProfilePage() {
 			(op: any) =>
 				userOrganizationIds.includes(op.warrantId) ||
 				userOrganizationIds.includes(op.clientId) ||
-				userOrganizationIds.includes(op.safiId)
+				userOrganizationIds.includes(op.bankId)
 		) || [];
 
 	const getStatusBadge = (status: OperationStatus) => {
