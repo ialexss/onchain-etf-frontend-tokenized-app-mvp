@@ -3,7 +3,6 @@ import {
 	Operation,
 	CreateOperationDto,
 	UploadDocumentResponse,
-	PaymentLetterResponse,
 	DeliveryStatus,
 	VerifyTokenizationResponse,
 	TokenizationPreview,
@@ -57,10 +56,18 @@ export const operationsApi = {
 
 	uploadCD: async (
 		operationId: number,
-		file: File
+		file: File,
+		assetId?: number,
+		titleNumber?: string
 	): Promise<UploadDocumentResponse> => {
 		const formData = new FormData();
 		formData.append("file", file);
+		if (assetId) {
+			formData.append("assetId", assetId.toString());
+		}
+		if (titleNumber) {
+			formData.append("titleNumber", titleNumber);
+		}
 
 		const { data } = await apiClient.post(
 			`/operations/${operationId}/upload-cd`,
@@ -76,10 +83,18 @@ export const operationsApi = {
 
 	uploadBP: async (
 		operationId: number,
-		file: File
+		file: File,
+		assetId?: number,
+		titleNumber?: string
 	): Promise<UploadDocumentResponse> => {
 		const formData = new FormData();
 		formData.append("file", file);
+		if (assetId) {
+			formData.append("assetId", assetId.toString());
+		}
+		if (titleNumber) {
+			formData.append("titleNumber", titleNumber);
+		}
 
 		const { data } = await apiClient.post(
 			`/operations/${operationId}/upload-bp`,
@@ -95,10 +110,18 @@ export const operationsApi = {
 
 	uploadPagare: async (
 		operationId: number,
-		file: File
+		file: File,
+		assetId?: number,
+		titleNumber?: string
 	): Promise<UploadDocumentResponse> => {
 		const formData = new FormData();
 		formData.append("file", file);
+		if (assetId) {
+			formData.append("assetId", assetId.toString());
+		}
+		if (titleNumber) {
+			formData.append("titleNumber", titleNumber);
+		}
 
 		const { data } = await apiClient.post(
 			`/operations/${operationId}/upload-pagare`,
@@ -138,12 +161,14 @@ export const operationsApi = {
 			documentType: "CD" | "BP" | "PAGARE";
 			signerEmail: string;
 			signerType: "WAREHOUSE" | "CLIENT" | "BANK";
-		}>
+		}>,
+		assetId?: number
 	): Promise<any> => {
 		const { data } = await apiClient.post(
 			`/operations/${operationId}/execute-signatures`,
 			{
 				signatures,
+				assetId,
 			}
 		);
 		return data;
@@ -178,6 +203,93 @@ export const operationsApi = {
 		return response;
 	},
 
+	// Paquete de Activos methods
+	validateAssetTokenBundle: async (assetId: number): Promise<{
+		ready: boolean;
+		assetExists: boolean;
+		cdExists: boolean;
+		bpExists: boolean;
+		pagareExists: boolean | null;
+		cdSignedByWarehouse: boolean;
+		cdSignedByClient: boolean;
+		bpSignedByWarehouse: boolean;
+		bpSignedByClient: boolean;
+		pagareSignedByClient: boolean | null;
+		pagareSignedByBank: boolean | null;
+		merkleRootCalculated: boolean;
+		missingComponents: string[];
+	}> => {
+		const { data } = await apiClient.get(
+			`/assets/${assetId}/tokenization-readiness`
+		);
+		return data;
+	},
+
+	getAssetTokenBundleStatus: async (assetId: number): Promise<{
+		asset: any;
+		documents: {
+			cd: any;
+			bp: any;
+			pagare: any;
+		};
+		merkleRoot: string | null;
+		token: any;
+		validation: {
+			valid: boolean;
+			missingComponents: string[];
+			cdExists: boolean;
+			bpExists: boolean;
+			pagareExists: boolean | null;
+			cdSignedByWarehouse: boolean;
+			cdSignedByClient: boolean;
+			bpSignedByWarehouse: boolean;
+			bpSignedByClient: boolean;
+			pagareSignedByClient: boolean;
+			pagareSignedByBank: boolean;
+			merkleRootCalculated: boolean;
+		};
+		isReadyForTokenization: boolean;
+		isTokenized: boolean;
+		isReleased: boolean;
+	}> => {
+		const { data } = await apiClient.get(
+			`/assets/${assetId}/bundle-status`
+		);
+		return data;
+	},
+
+	tokenizeAsset: async (assetId: number): Promise<any> => {
+		const { data } = await apiClient.post(
+			`/assets/${assetId}/tokenize`
+		);
+		return data;
+	},
+
+	tokenizeMultipleAssets: async (assetIds: number[]): Promise<{
+		success: any[];
+		failed: { assetId: number; error: string }[];
+	}> => {
+		const { data } = await apiClient.post(
+			`/tokens/assets/tokenize-batch`,
+			{ assetIds }
+		);
+		return data;
+	},
+
+	getAssetTokenBundlesStatus: async (operationId: number): Promise<{
+		total: number;
+		stored: number;
+		pledged: number;
+		burned: number;
+		tokenized: number;
+		allReleased: boolean;
+	}> => {
+		const { data } = await apiClient.get(
+			`/operations/${operationId}/asset-token-bundles-status`
+		);
+		return data;
+	},
+
 	getDeliveryStatus: async (operationId: number): Promise<DeliveryStatus> => {
 		const { data } = await apiClient.get(
 			`/operations/${operationId}/delivery-status`
@@ -192,22 +304,32 @@ export const operationsApi = {
 		return data;
 	},
 
-	liquidateOperation: async (operationId: number): Promise<any> => {
+	transferTokensToWarehouse: async (
+		operationId: number,
+		assetIds: number[]
+	): Promise<{
+		success: { assetId: number; tokenId: number; txHash: string }[];
+		failed: { assetId: number; error: string }[];
+	}> => {
 		const { data } = await apiClient.post(
-			`/operations/${operationId}/liquidate`
+			`/operations/${operationId}/transfer-tokens-to-warehouse`,
+			{ assetIds }
 		);
 		return data;
 	},
 
-	uploadPaymentLetter: async (
+	// Release Letter methods
+	uploadReleaseLetter: async (
 		operationId: number,
-		file: File
-	): Promise<PaymentLetterResponse> => {
+		file: File,
+		assetIds: number[]
+	): Promise<any> => {
 		const formData = new FormData();
 		formData.append("file", file);
+		formData.append("assetIds", JSON.stringify(assetIds));
 
 		const { data } = await apiClient.post(
-			`/operations/${operationId}/payment-letter/upload`,
+			`/operations/${operationId}/release-letter/upload`,
 			formData,
 			{
 				headers: {
@@ -218,46 +340,65 @@ export const operationsApi = {
 		return data;
 	},
 
-	generatePaymentLetter: async (
-		operationId: number
-	): Promise<PaymentLetterResponse> => {
+	generateReleaseLetter: async (
+		operationId: number,
+		assetIds: number[]
+	): Promise<any> => {
 		const { data } = await apiClient.post(
-			`/operations/${operationId}/payment-letter/generate`
+			`/operations/${operationId}/release-letter/generate`,
+			{ assetIds }
 		);
 		return data;
 	},
 
-	getPaymentLetter: async (
-		operationId: number
-	): Promise<PaymentLetterResponse | null> => {
-		try {
-			const { data } = await apiClient.get(
-				`/operations/${operationId}/payment-letter`
-			);
-			return data;
-		} catch (error: any) {
-			if (error.response?.status === 404) {
-				return null;
-			}
-			throw error;
-		}
-	},
-
-	approvePaymentLetter: async (
-		operationId: number
-	): Promise<PaymentLetterResponse> => {
-		const { data } = await apiClient.post(
-			`/operations/${operationId}/payment-letter/approve`
-		);
-		return data;
-	},
-
-	downloadPaymentLetter: async (operationId: number): Promise<Blob> => {
+	getReleaseLetters: async (operationId: number): Promise<any[]> => {
 		const { data } = await apiClient.get(
-			`/operations/${operationId}/payment-letter/download`,
+			`/operations/${operationId}/release-letters`
+		);
+		return data;
+	},
+
+	approveReleaseLetter: async (
+		releaseLetterId: number
+	): Promise<any> => {
+		const { data } = await apiClient.post(
+			`/operations/release-letters/${releaseLetterId}/approve`
+		);
+		return data;
+	},
+
+	getApprovedAssetTokenBundles: async (
+		operationId: number
+	): Promise<number[]> => {
+		const { data } = await apiClient.get(
+			`/operations/${operationId}/approved-asset-token-bundles`
+		);
+		return data;
+	},
+
+	downloadReleaseLetter: async (
+		operationId: number,
+		releaseLetterId: number
+	): Promise<Blob> => {
+		const { data } = await apiClient.get(
+			`/operations/${operationId}/release-letters/${releaseLetterId}/download`,
 			{
 				responseType: "blob",
 			}
+		);
+		return data;
+	},
+
+	releaseAssetTokenBundles: async (
+		operationId: number,
+		assetIds: number[]
+	): Promise<{
+		success: any[];
+		failed: { assetId: number; error: string }[];
+	}> => {
+		const { data } = await apiClient.post(
+			`/operations/${operationId}/release-asset-token-bundles`,
+			{ assetIds }
 		);
 		return data;
 	},

@@ -6,7 +6,6 @@ import { Package, Coins, FileText } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { assetsApi } from "@/lib/api/assets";
 import { tokensApi } from "@/lib/api/tokens";
-import { endorsementsApi } from "@/lib/api/endorsements";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function OverviewPage() {
@@ -24,11 +23,6 @@ export default function OverviewPage() {
 		enabled: !!user,
 	});
 
-	const { data: endorsements, isLoading: endorsementsLoading } = useQuery({
-		queryKey: ["endorsements"],
-		queryFn: endorsementsApi.getAll,
-		enabled: !!user,
-	});
 
 	const stats = [
 		{
@@ -62,7 +56,7 @@ export default function OverviewPage() {
 				{stats.map((stat) => {
 					const Icon = stat.icon;
 					const isLoading =
-						assetsLoading || tokensLoading || endorsementsLoading;
+						assetsLoading || tokensLoading;
 
 					return (
 						<Card key={stat.title}>

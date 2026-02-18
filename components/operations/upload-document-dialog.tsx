@@ -114,6 +114,7 @@ export function UploadDocumentDialog({
 	onUploadSuccess,
 }: UploadDocumentDialogProps) {
 	const [selectedFile, setSelectedFile] = useState<File | null>(null);
+	const [titleNumber, setTitleNumber] = useState<string>("");
 	const [extractedFields, setExtractedFields] = useState<any>({});
 	const [editableFields, setEditableFields] = useState<any>({});
 	const [showEditFields, setShowEditFields] = useState(false);
@@ -153,14 +154,14 @@ export function UploadDocumentDialog({
 	const uploadMutation = useMutation({
 		mutationFn: async (file: File) => {
 			if (documentType === "CD") {
-				return operationsApi.uploadCD(operationId, file);
+				return operationsApi.uploadCD(operationId, file, undefined, titleNumber || undefined);
 			} else if (documentType === "BP") {
-				return operationsApi.uploadBP(operationId, file);
+				return operationsApi.uploadBP(operationId, file, undefined, titleNumber || undefined);
 			} else if (
 				documentType === "PAGARE" ||
 				documentType === "PROMISSORY_NOTE"
 			) {
-				return operationsApi.uploadPagare(operationId, file);
+				return operationsApi.uploadPagare(operationId, file, undefined, titleNumber || undefined);
 			} else {
 				throw new Error(`Unknown document type: ${documentType}`);
 			}
@@ -219,6 +220,7 @@ export function UploadDocumentDialog({
 
 	const handleClose = () => {
 		setSelectedFile(null);
+		setTitleNumber("");
 		setExtractedFields({});
 		setEditableFields({});
 		setShowEditFields(false);
@@ -229,6 +231,7 @@ export function UploadDocumentDialog({
 	useEffect(() => {
 		if (!open) {
 			setSelectedFile(null);
+			setTitleNumber("");
 			setExtractedFields({});
 			setEditableFields({});
 			setShowEditFields(false);
@@ -248,6 +251,22 @@ export function UploadDocumentDialog({
 				</DialogHeader>
 
 				<div className="space-y-4">
+					{/* Número de Título */}
+					<div className="space-y-2">
+						<Label htmlFor="title-number">Número de Título (Opcional)</Label>
+						<Input
+							id="title-number"
+							type="text"
+							placeholder="Ingrese el número de título"
+							value={titleNumber}
+							onChange={(e) => setTitleNumber(e.target.value)}
+							disabled={uploadMutation.isPending || extractMutation.isPending}
+						/>
+						<p className="text-xs text-muted-foreground">
+							Especifique el número de título al subir el documento (CD, BP o Pagaré)
+						</p>
+					</div>
+
 					{/* Seleccionar archivo */}
 					<div className="space-y-2">
 						<Label htmlFor="file-upload">Archivo PDF</Label>

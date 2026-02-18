@@ -31,6 +31,7 @@ export interface Document {
 	previousDocumentId?: number;
 	// Nuevos campos para correlativos vinculados
 	documentNumber?: string; // Número de título (ej: "4355" para CD, "4258" para BP)
+	titleNumber?: string; // Número de título (especificar al subir documentos BN, CD, Pagaré)
 	pairedDocumentId?: number; // ID del documento pareado (CD <-> BP)
 	pairedDocument?: Document; // Referencia al documento pareado
 	// Campos para documentos subidos

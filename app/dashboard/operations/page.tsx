@@ -33,7 +33,12 @@ import {
 	Filter,
 	Grid3x3,
 	List,
+	Package,
+	DollarSign,
+	Lock,
+	Unlock,
 } from "lucide-react";
+import { AssetDeliveryStatus } from "@/types/asset";
 import { CreateOperationDialog } from "@/components/operations/create-operation-dialog";
 import { DeliveryStatusBadge } from "@/components/operations/delivery-status-badge";
 import { OperationStatus } from "@/types/operation";
@@ -78,6 +83,21 @@ export default function OperationsPage() {
 		});
 	}, [operations, searchQuery, statusFilter]);
 
+	// Calcular estadísticas de bundles para una operación
+	const getBundleStats = (operation: any) => {
+		const assets = operation.assets || [];
+		const total = assets.length;
+		const libre = assets.filter((a: any) => {
+			const deliveryStatus = a.deliveryStatus || 
+				(a.token ? AssetDeliveryStatus.RED : AssetDeliveryStatus.GREEN);
+			return deliveryStatus === AssetDeliveryStatus.GREEN;
+		}).length;
+		const bloqueados = total - libre;
+		const totalValue = assets.reduce((sum: number, a: any) => sum + Number(a.value || 0), 0);
+		
+		return { total, libre, bloqueados, totalValue };
+	};
+
 	const getStatusBadge = (status: OperationStatus) => {
 		const variants: Record<
 			OperationStatus,
@@ -100,7 +120,7 @@ export default function OperationsPage() {
 			SIGNED: "Firmado",
 			TOKENIZED: "Tokenizado",
 			ACTIVE: "Activo",
-			LIQUIDATED: "Liquidado",
+			LIQUIDATED: "Liberado",
 			RELEASED: "Liberado",
 		};
 
@@ -229,76 +249,82 @@ export default function OperationsPage() {
 							<TableHeader>
 								<TableRow>
 									<TableHead>Número de Operación</TableHead>
-									<TableHead>Warrantera</TableHead>
 									<TableHead>Cliente</TableHead>
-									<TableHead>Entidad Financiera</TableHead>
+									<TableHead className="text-center">Bundles</TableHead>
+									<TableHead className="text-center">Libres</TableHead>
+									<TableHead className="text-center">Bloqueados</TableHead>
+									<TableHead className="text-right">Valor Total</TableHead>
 									<TableHead>Estado</TableHead>
-									<TableHead>Semáforo</TableHead>
 									<TableHead>Acciones</TableHead>
 								</TableRow>
 							</TableHeader>
 							<TableBody>
 								{filteredOperations &&
 								filteredOperations.length > 0 ? (
-									filteredOperations.map((operation: any) => (
-										<TableRow key={operation.id}>
-											<TableCell className="font-medium">
-												{operation.operationNumber ||
-													`OP-${operation.id}`}
-											</TableCell>
-											<TableCell>
-												{operation.warrant?.name || "-"}
-											</TableCell>
-											<TableCell>
-												{operation.client?.name || "-"}
-											</TableCell>
-											<TableCell>
-												{operation.bank?.name || "-"}
-											</TableCell>
-											<TableCell>
-												{getStatusBadge(
-													operation.status
-												)}
-											</TableCell>
-											<TableCell>
-												{operation.deliveryStatus ? (
-													<DeliveryStatusBadge
-														status={
-															operation
-																.deliveryStatus
-																.status
-														}
-														message={
-															operation
-																.deliveryStatus
-																.message
-														}
-													/>
-												) : (
-													<Badge variant="outline">
-														N/A
+									filteredOperations.map((operation: any) => {
+										const stats = getBundleStats(operation);
+										return (
+											<TableRow key={operation.id}>
+												<TableCell className="font-medium">
+													{operation.operationNumber ||
+														`OP-${operation.id}`}
+												</TableCell>
+												<TableCell>
+													<div>
+														<p className="font-medium">
+															{operation.client?.name || "-"}
+														</p>
+														<p className="text-xs text-muted-foreground">
+															{operation.bank?.name || "-"}
+														</p>
+													</div>
+												</TableCell>
+												<TableCell className="text-center">
+													<div className="flex items-center justify-center gap-1">
+														<Package className="h-4 w-4 text-muted-foreground" />
+														<span className="font-semibold">{stats.total}</span>
+													</div>
+												</TableCell>
+												<TableCell className="text-center">
+													<Badge variant="outline" className="bg-green-50 text-green-700 border-green-300 dark:bg-green-950 dark:text-green-300">
+														<Unlock className="h-3 w-3 mr-1" />
+														{stats.libre}
 													</Badge>
-												)}
-											</TableCell>
-											<TableCell>
-												<Link
-													href={`/dashboard/operations/${operation.id}`}
-												>
-													<Button
-														variant="ghost"
-														size="sm"
+												</TableCell>
+												<TableCell className="text-center">
+													<Badge variant="outline" className="bg-red-50 text-red-700 border-red-300 dark:bg-red-950 dark:text-red-300">
+														<Lock className="h-3 w-3 mr-1" />
+														{stats.bloqueados}
+													</Badge>
+												</TableCell>
+												<TableCell className="text-right font-semibold">
+													${stats.totalValue.toLocaleString()}
+												</TableCell>
+												<TableCell>
+													{getStatusBadge(
+														operation.status
+													)}
+												</TableCell>
+												<TableCell>
+													<Link
+														href={`/dashboard/operations/${operation.id}`}
 													>
-														<Eye className="h-4 w-4 mr-2" />
-														Ver
-													</Button>
-												</Link>
-											</TableCell>
-										</TableRow>
-									))
+														<Button
+															variant="ghost"
+															size="sm"
+														>
+															<Eye className="h-4 w-4 mr-2" />
+															Ver
+														</Button>
+													</Link>
+												</TableCell>
+											</TableRow>
+										);
+									})
 								) : (
 									<TableRow>
 										<TableCell
-											colSpan={7}
+											colSpan={8}
 											className="text-center text-slate-500 py-8"
 										>
 											<FileCheck className="h-12 w-12 mx-auto mb-2 opacity-50" />

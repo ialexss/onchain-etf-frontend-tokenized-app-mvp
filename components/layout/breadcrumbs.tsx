@@ -35,7 +35,6 @@ export function Breadcrumbs({ items, className }: BreadcrumbsProps) {
 					assets: "Activos",
 					tokens: "Tokens",
 					documents: "Documentos",
-					endorsements: "Endosos",
 					organizations: "Organizaciones",
 					users: "Usuarios",
 					profile: "Mi Perfil",

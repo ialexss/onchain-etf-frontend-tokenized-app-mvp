@@ -13,11 +13,6 @@ export enum OperationStatus {
 	RELEASED = "RELEASED",
 }
 
-export enum PaymentLetterStatus {
-	PENDING = "PENDING",
-	APPROVED = "APPROVED",
-	REJECTED = "REJECTED",
-}
 
 export interface Operation {
 	id: number;
@@ -35,26 +30,18 @@ export interface Operation {
 	annualRate?: number;
 	principalAmount?: number;
 	maturityDate?: Date;
+	// Campos de financiamiento
+	giroValue?: number;
+	endorsementValue?: number;
+	termDays?: number;
+	interestRate?: number;
+	guaranteeRiskRatio?: string;
 	assets?: Asset[];
-	paymentLetterId?: number;
-	paymentLetter?: PaymentLetter;
 	deliveryStatus?: DeliveryStatus;
 	createdAt: Date;
 	updatedAt: Date;
 }
 
-export interface PaymentLetter {
-	id: number;
-	operationId: number;
-	pdfPath: string;
-	pdfHash: string;
-	issuedByBank: boolean;
-	issuedAt?: Date;
-	isGenerated: boolean;
-	status: PaymentLetterStatus;
-	createdAt: Date;
-	updatedAt: Date;
-}
 
 export interface DocumentBundle {
 	id: number;
@@ -83,14 +70,21 @@ export interface CreateOperationDto {
 	annualRate?: number;
 	principalAmount?: number;
 	maturityDate?: string;
+	// Campos de financiamiento
+	giroValue?: number;
+	endorsementValue?: number;
+	termDays?: number;
+	interestRate?: number;
+	guaranteeRiskRatio?: string;
 	assets: Array<{
-		vinSerial: string;
+		vinSerial?: string; // Opcional
 		name?: string;
 		description?: string;
 		brands?: string;
 		quantity?: number;
 		location?: string;
 		value: number;
+		currency: string; // USD o BOB
 	}>;
 }
 
@@ -101,16 +95,6 @@ export interface UploadDocumentResponse {
 	missingFields: string[];
 }
 
-export interface PaymentLetterResponse {
-	id: number;
-	operationId: number;
-	pdfPath: string;
-	pdfHash: string;
-	isGenerated: boolean;
-	issuedByBank: boolean;
-	issuedAt: Date;
-	status: string;
-}
 
 export interface DeliveryStatus {
 	status: "RED" | "GREEN";
@@ -131,6 +115,12 @@ export interface TokenizationData {
 	annualRate?: number;
 	principalAmount?: number;
 	maturityDate?: string;
+	// Campos de financiamiento
+	giroValue?: number;
+	endorsementValue?: number;
+	termDays?: number;
+	interestRate?: number;
+	guaranteeRiskRatio?: string;
 }
 
 export interface TokenizationPreview {
@@ -157,8 +147,9 @@ export interface TokenizationPreview {
 	};
 	assets: Array<{
 		id: number;
-		vinSerial: string;
+		vinSerial?: string; // Opcional
 		value: number;
+		currency?: string; // USD o BOB
 		description?: string;
 		status: string;
 	}>;

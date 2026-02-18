@@ -236,19 +236,13 @@ export function TokenWalletCard({ token }: TokenWalletCardProps) {
 										<p className="text-muted-foreground">VIN/Serial</p>
 										<p className="font-medium">{token.asset.vinSerial}</p>
 									</div>
-									{token.asset.description && (
-										<div>
-											<p className="text-muted-foreground">Descripción</p>
-											<p className="font-medium">{token.asset.description}</p>
-										</div>
-									)}
-									{token.asset.brands && (
-										<div>
-											<p className="text-muted-foreground">Marcas</p>
-											<p className="font-medium">{token.asset.brands}</p>
-										</div>
-									)}
-									<Link href={`/dashboard/assets/${token.asset.id}`}>
+								{token.asset.description && (
+									<div>
+										<p className="text-muted-foreground">Descripción</p>
+										<p className="font-medium">{token.asset.description}</p>
+									</div>
+								)}
+								<Link href={`/dashboard/assets/${token.asset.id}`}>
 										<Button variant="ghost" size="sm" className="w-full">
 											<Eye className="h-4 w-4 mr-2" />
 											Ver Activo Completo

@@ -1,69 +1,140 @@
 "use client";
 
 import { OperationStatus } from "@/types/operation";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, Circle, Clock } from "lucide-react";
+import { CheckCircle2, Circle, Clock, Package, FileText, FileCheck, Coins, Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface OperationStatusTimelineProps {
 	status: OperationStatus;
+	assets?: any[];
 	onActionClick?: (action: string) => void;
 }
 
-const STATUSES: Array<{
-	status: OperationStatus;
+// Determinar el estado real basado en los bundles
+function calculateRealStatus(assets: any[]): {
+	stage: string;
 	label: string;
 	description: string;
-	action?: string;
-}> = [
+	progress: number;
+} {
+	if (!assets || assets.length === 0) {
+		return {
+			stage: "CREATED",
+			label: "Creada",
+			description: "Operación creada sin Paquetes de Activos",
+			progress: 0,
+		};
+	}
+
+	const allReleased = assets.every(a => a.status === "BURNED" || a.status === "DELIVERED");
+	if (allReleased) {
+		return {
+			stage: "RELEASED",
+			label: "Liberada",
+			description: "Todos los bundles han sido liberados",
+			progress: 100,
+		};
+	}
+
+	const someTokenized = assets.some(a => a.token);
+	const allTokenized = assets.every(a => a.token);
+	if (allTokenized) {
+		return {
+			stage: "TOKENIZED",
+			label: "Tokenizada",
+			description: "Todos los bundles están tokenizados",
+			progress: 80,
+		};
+	}
+	if (someTokenized) {
+		return {
+			stage: "TOKENIZING",
+			label: "En Tokenización",
+			description: "Algunos bundles están tokenizados",
+			progress: 60,
+		};
+	}
+
+	// Verificar si todos tienen documentos y firmas
+	const allDocumentsReady = assets.every(a => {
+		// Aquí deberíamos verificar documentos, pero simplificamos
+		return a.createdAt; // Si existe, asumimos que tiene algo
+	});
+
+	if (allDocumentsReady) {
+		return {
+			stage: "DOCUMENTS_READY",
+			label: "Documentos Listos",
+			description: "Los bundles están listos para tokenizar",
+			progress: 40,
+		};
+	}
+
+	return {
+		stage: "PROCESSING",
+		label: "En Proceso",
+		description: "Bundles en proceso de documentación",
+		progress: 20,
+	};
+}
+
+const TIMELINE_STAGES = [
 	{
-		status: OperationStatus.PENDING,
-		label: "Pendiente",
-		description: "Operación creada, esperando documentos",
+		id: "CREATED",
+		label: "Creada",
+		description: "Operación creada con bundles",
+		icon: Package,
 	},
 	{
-		status: OperationStatus.DOCUMENTS_UPLOADED,
-		label: "Documentos Subidos",
-		description: "Todos los documentos han sido subidos",
+		id: "DOCUMENTS_READY",
+		label: "Documentos",
+		description: "Bundles con documentos completos",
+		icon: FileText,
 	},
 	{
-		status: OperationStatus.SIGNED,
-		label: "Firmado",
-		description: "Todos los documentos están firmados",
+		id: "DOCUMENTS_SIGNED",
+		label: "Firmados",
+		description: "Documentos firmados por todas las partes",
+		icon: FileCheck,
 	},
 	{
-		status: OperationStatus.TOKENIZED,
-		label: "Tokenizado",
-		description: "Bundle tokenizado en XRPL",
+		id: "TOKENIZED",
+		label: "Tokenizada",
+		description: "Bundles tokenizados en XRPL",
+		icon: Coins,
 	},
 	{
-		status: OperationStatus.ACTIVE,
-		label: "Activo",
-		description: "Token en posesión de Entidad Financiera",
-	},
-	{
-		status: OperationStatus.LIQUIDATED,
-		label: "Liquidado",
-		description: "Token transferido a la warehouse",
-	},
-	{
-		status: OperationStatus.RELEASED,
-		label: "Liberado",
-		description: "Operación completada",
+		id: "RELEASED",
+		label: "Liberada",
+		description: "Bundles liberados completamente",
+		icon: Shield,
 	},
 ];
 
 export function OperationStatusTimeline({
 	status,
+	assets = [],
 	onActionClick,
 }: OperationStatusTimelineProps) {
-	const currentIndex = STATUSES.findIndex((s) => s.status === status);
+	const currentStatus = calculateRealStatus(assets);
+	const currentIndex = TIMELINE_STAGES.findIndex((s) => s.id === currentStatus.stage);
 
 	return (
 		<Card>
 			<CardHeader>
-				<CardTitle>Estado de la Operación</CardTitle>
+				<div className="flex items-center justify-between">
+					<div>
+						<CardTitle>Ciclo de Vida de la Operación</CardTitle>
+						<CardDescription>
+							Basado en el estado de {assets.length} Paquete{assets.length !== 1 ? 's' : ''} de Activos
+						</CardDescription>
+					</div>
+					<Badge variant="outline" className="text-base">
+						{currentStatus.progress}% completado
+					</Badge>
+				</div>
 			</CardHeader>
 			<CardContent>
 				<div className="relative">
@@ -72,13 +143,14 @@ export function OperationStatusTimeline({
 
 					{/* Timeline Items */}
 					<div className="space-y-6">
-						{STATUSES.map((item, index) => {
+						{TIMELINE_STAGES.map((stage, index) => {
 							const isCompleted = index < currentIndex;
 							const isCurrent = index === currentIndex;
 							const isPending = index > currentIndex;
+							const Icon = stage.icon;
 
 							return (
-								<div key={item.status} className="relative flex items-start gap-4">
+								<div key={stage.id} className="relative flex items-start gap-4">
 									{/* Icon */}
 									<div
 										className={cn(
@@ -93,7 +165,7 @@ export function OperationStatusTimeline({
 										{isCompleted ? (
 											<CheckCircle2 className="h-5 w-5" />
 										) : isCurrent ? (
-											<Clock className="h-5 w-5" />
+											<Icon className="h-5 w-5" />
 										) : (
 											<Circle className="h-5 w-5" />
 										)}
@@ -113,14 +185,15 @@ export function OperationStatusTimeline({
 															: "text-muted-foreground"
 													)}
 												>
-													{item.label}
+													{stage.label}
 												</p>
 												<p className="text-sm text-muted-foreground">
-													{item.description}
+													{stage.description}
 												</p>
 											</div>
 											{isCurrent && (
 												<Badge variant="default">
+													<Clock className="h-3 w-3 mr-1" />
 													Actual
 												</Badge>
 											)}

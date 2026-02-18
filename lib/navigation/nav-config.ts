@@ -85,17 +85,6 @@ export const navigationSections: NavSection[] = [
 				icon: FileSignature,
 				permission: "documents:read",
 			},
-			{
-				title: "Endosos",
-				href: "/dashboard/endorsements",
-				icon: FileText,
-				permission: "endorsements:read",
-				organizationTypes: [
-					OrganizationType.ETF,
-					OrganizationType.CLIENT,
-					OrganizationType.BANK,
-				],
-			},
 		],
 	},
 	{

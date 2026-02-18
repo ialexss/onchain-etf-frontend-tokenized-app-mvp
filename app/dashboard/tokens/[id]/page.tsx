@@ -7,14 +7,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ExternalLink, History, FileText, User, Building2 } from "lucide-react";
+import { ExternalLink, History, FileText, User, Building2, Eye, Package, Briefcase } from "lucide-react";
 import Link from "next/link";
 import { BackButton } from "@/components/ui/back-button";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Document, DocumentType } from "@/types/document";
 import { operationsApi } from "@/lib/api/operations";
-import { Briefcase } from "lucide-react";
 
 export default function TokenDetailPage() {
 	const params = useParams();
@@ -32,35 +31,16 @@ export default function TokenDetailPage() {
 		enabled: !!tokenId,
 	});
 
-	// Obtener operación asociada (usar operationId del token si está disponible)
+	// Obtener operación asociada solo como información adicional (si existe operationId)
 	const { data: operation } = useQuery({
 		queryKey: ["operation-by-token", token?.operationId],
 		queryFn: async () => {
 			if (token?.operationId) {
 				return operationsApi.getById(token.operationId);
 			}
-			// Fallback: buscar por assetId si no hay operationId
-			if (token?.assetId) {
-				const allOperations = await operationsApi.getAll();
-				const operationWithAsset = allOperations.find((op: any) =>
-					op.assets?.some((asset: any) => asset.id === token.assetId)
-				);
-				return operationWithAsset || null;
-			}
 			return null;
 		},
-		enabled: !!token,
-	});
-
-	// Obtener todos los activos asociados al token (a través de operationId)
-	const { data: operationAssets } = useQuery({
-		queryKey: ["operation-assets", operation?.id],
-		queryFn: async () => {
-			if (!operation?.id) return [];
-			const op = await operationsApi.getById(operation.id);
-			return op.assets || [];
-		},
-		enabled: !!operation?.id,
+		enabled: !!token?.operationId,
 	});
 
 	if (isLoading) {
@@ -109,13 +89,57 @@ export default function TokenDetailPage() {
 				</div>
 			</div>
 
-			{/* Operación Asociada */}
-			{operation && (
+			{/* Activo Relacionado - Información Principal */}
+			{token.asset && (
 				<Card className="bg-primary/5 border-primary/20">
 					<CardHeader>
 						<CardTitle className="flex items-center gap-2">
+							<Package className="h-5 w-5" />
+							Paquete de Activos Relacionado
+						</CardTitle>
+					</CardHeader>
+					<CardContent>
+						<div className="flex items-center justify-between">
+							<div className="flex-1">
+								<p className="font-medium text-lg">
+									{token.asset.vinSerial || `Asset #${token.asset.id}`}
+								</p>
+								{token.asset.description && (
+									<p className="text-sm text-muted-foreground mt-1">
+										{token.asset.description}
+									</p>
+								)}
+								{token.asset.value && (
+									<p className="text-sm font-medium mt-2">
+										Valor: ${Number(token.asset.value).toLocaleString()}
+									</p>
+								)}
+								{token.asset.status && (
+									<Badge variant="outline" className="mt-2">
+										{token.asset.status}
+									</Badge>
+								)}
+							</div>
+							<Link
+								href={`/dashboard/assets/${token.asset.id}`}
+							>
+								<Button variant="outline">
+									<Eye className="h-4 w-4 mr-2" />
+									Ver Detalle del Activo
+								</Button>
+							</Link>
+						</div>
+					</CardContent>
+				</Card>
+			)}
+
+			{/* Operación Asociada - Información Adicional (si existe) */}
+			{operation && (
+				<Card>
+					<CardHeader>
+						<CardTitle className="flex items-center gap-2">
 							<Briefcase className="h-5 w-5" />
-							Operación Asociada
+							Operación Asociada (Información Adicional)
 						</CardTitle>
 					</CardHeader>
 					<CardContent>
@@ -134,7 +158,7 @@ export default function TokenDetailPage() {
 							<Link
 								href={`/dashboard/operations/${operation.id}`}
 							>
-								<Button variant="outline">Ver Operación</Button>
+								<Button variant="outline" size="sm">Ver Operación</Button>
 							</Link>
 						</div>
 					</CardContent>
@@ -159,96 +183,46 @@ export default function TokenDetailPage() {
 							</p>
 							{getStatusBadge(token.status)}
 						</div>
-						{token.operationId && (
+						{token.asset && (
+							<div>
+								<p className="text-sm font-medium text-slate-500 mb-2">
+									Activo Relacionado
+								</p>
+								<div className="p-3 bg-muted/50 rounded-lg border">
+									<div className="flex items-center justify-between">
+										<div className="flex-1">
+											<p className="font-semibold">
+												{token.asset.vinSerial || `Asset #${token.asset.id}`}
+											</p>
+											{token.asset.description && (
+												<p className="text-sm text-muted-foreground mt-1">
+													{token.asset.description}
+												</p>
+											)}
+										</div>
+										<Link
+											href={`/dashboard/assets/${token.asset.id}`}
+										>
+											<Button variant="outline" size="sm">
+												<Eye className="h-4 w-4 mr-1" />
+												Ver Detalle
+											</Button>
+										</Link>
+									</div>
+								</div>
+							</div>
+						)}
+						{token.operationId && operation && (
 							<div>
 								<p className="text-sm font-medium text-slate-500">
 									Operación
 								</p>
 								<p className="font-medium">
-									{operation?.operationNumber ||
+									{operation.operationNumber ||
 										`OP-${token.operationId}`}
 								</p>
 							</div>
 						)}
-						{token.assets && token.assets.length > 0 ? (
-							<div>
-								<p className="text-sm font-medium text-slate-500">
-									Activos Representados ({token.assets.length}
-									)
-								</p>
-								<div className="space-y-2 mt-2">
-									{token.assets.map((asset) => (
-										<div
-											key={asset.id}
-											className="flex items-center justify-between p-2 border rounded"
-										>
-											<span className="font-medium">
-												{asset.vinSerial}
-											</span>
-											<Link
-												href={`/dashboard/assets/${asset.id}`}
-											>
-												<Button
-													variant="ghost"
-													size="sm"
-												>
-													Ver
-												</Button>
-											</Link>
-										</div>
-									))}
-								</div>
-							</div>
-						) : operationAssets && operationAssets.length > 0 ? (
-							<div>
-								<p className="text-sm font-medium text-slate-500">
-									Activos Representados (
-									{operationAssets.length})
-								</p>
-								<div className="space-y-2 mt-2">
-									{operationAssets.map((asset: any) => (
-										<div
-											key={asset.id}
-											className="flex items-center justify-between p-2 border rounded"
-										>
-											<span className="font-medium">
-												{asset.vinSerial}
-											</span>
-											<Link
-												href={`/dashboard/assets/${asset.id}`}
-											>
-												<Button
-													variant="ghost"
-													size="sm"
-												>
-													Ver
-												</Button>
-											</Link>
-										</div>
-									))}
-								</div>
-							</div>
-						) : token.asset ? (
-							<div>
-								<p className="text-sm font-medium text-slate-500">
-									Activo Representado
-								</p>
-								<div className="flex items-center gap-2">
-									<p className="font-medium">
-										{token.asset.vinSerial || "-"}
-									</p>
-									{token.asset.id && (
-										<Link
-											href={`/dashboard/assets/${token.asset.id}`}
-										>
-											<Button variant="ghost" size="sm">
-												Ver Activo
-											</Button>
-										</Link>
-									)}
-								</div>
-							</div>
-						) : null}
 						{token.metadataHash && (
 							<div>
 								<p className="text-sm font-medium text-slate-500">
@@ -430,7 +404,7 @@ export default function TokenDetailPage() {
 				</Card>
 			</div>
 
-			{/* Documentos del Bundle (CD, BP, Pagaré) */}
+			{/* Documentos del Activo Relacionado */}
 			{(token.cdDocumentUrl ||
 				token.bpDocumentUrl ||
 				token.pagareDocumentUrl ||
@@ -440,11 +414,16 @@ export default function TokenDetailPage() {
 					<CardHeader>
 						<CardTitle className="flex items-center gap-2">
 							<FileText className="h-5 w-5" />
-							Documentos del Bundle
+							Documentos del Activo Relacionado
+							{token.asset && (
+								<span className="text-sm font-normal text-muted-foreground">
+									({token.asset.vinSerial || `Asset #${token.asset.id}`})
+								</span>
+							)}
 						</CardTitle>
 					</CardHeader>
 					<CardContent>
-						{/* Prioridad: mostrar documentos del bundle del token */}
+						{/* Prioridad: mostrar documentos del bundle del token (CD, BP, Pagaré) */}
 						{(token.cdDocumentUrl ||
 							token.bpDocumentUrl ||
 							token.pagareDocumentUrl) && (
@@ -460,11 +439,9 @@ export default function TokenDetailPage() {
 												{token.cdHash && (
 													<p className="text-sm text-slate-500 mt-1">
 														Hash:{" "}
-														{token.cdHash.substring(
-															0,
-															32
-														)}
-														...
+														<code className="text-xs font-mono bg-muted px-1 py-0.5 rounded">
+															{token.cdHash.substring(0, 32)}...
+														</code>
 													</p>
 												)}
 											</div>
@@ -500,11 +477,9 @@ export default function TokenDetailPage() {
 												{token.bpHash && (
 													<p className="text-sm text-slate-500 mt-1">
 														Hash:{" "}
-														{token.bpHash.substring(
-															0,
-															32
-														)}
-														...
+														<code className="text-xs font-mono bg-muted px-1 py-0.5 rounded">
+															{token.bpHash.substring(0, 32)}...
+														</code>
 													</p>
 												)}
 											</div>
@@ -540,11 +515,9 @@ export default function TokenDetailPage() {
 												{token.pagareHash && (
 													<p className="text-sm text-slate-500 mt-1">
 														Hash:{" "}
-														{token.pagareHash.substring(
-															0,
-															32
-														)}
-														...
+														<code className="text-xs font-mono bg-muted px-1 py-0.5 rounded">
+															{token.pagareHash.substring(0, 32)}...
+														</code>
 													</p>
 												)}
 											</div>
@@ -571,7 +544,7 @@ export default function TokenDetailPage() {
 								)}
 							</div>
 						)}
-						{/* Fallback: mostrar documentos del activo si no hay bundle */}
+						{/* Fallback: mostrar documentos del activo si no hay URLs directas en el token */}
 						{!token.cdDocumentUrl &&
 							!token.bpDocumentUrl &&
 							!token.pagareDocumentUrl &&
@@ -582,7 +555,8 @@ export default function TokenDetailPage() {
 										.filter(
 											(doc: Document) =>
 												doc.type === DocumentType.CD ||
-												doc.type === DocumentType.BP
+												doc.type === DocumentType.BP ||
+												doc.type === DocumentType.PROMISSORY_NOTE
 										)
 										.map((doc: Document) => (
 											<div
@@ -593,26 +567,26 @@ export default function TokenDetailPage() {
 													<FileText className="h-5 w-5 text-slate-400" />
 													<div className="flex-1">
 														<p className="font-medium">
-															{doc.type ===
-															DocumentType.CD
+															{doc.type === DocumentType.CD
 																? `Certificado de Depósito No. ${
 																		doc.documentNumber ||
 																		"N/A"
 																  }`
-																: `Bono de Prenda No. ${
+																: doc.type === DocumentType.BP
+																? `Bono de Prenda No. ${
+																		doc.documentNumber ||
+																		"N/A"
+																  }`
+																: `Pagaré No. ${
 																		doc.documentNumber ||
 																		"N/A"
 																  }`}
 														</p>
 														<p className="text-sm text-slate-500 mt-1">
-															Versión{" "}
-															{doc.version} •
-															Hash:{" "}
-															{doc.pdfHash.substring(
-																0,
-																16
-															)}
-															...
+															Versión {doc.version} • Hash:{" "}
+															<code className="text-xs font-mono bg-muted px-1 py-0.5 rounded">
+																{doc.pdfHash?.substring(0, 16) || "N/A"}...
+															</code>
 														</p>
 													</div>
 												</div>

@@ -46,8 +46,6 @@ export function DocumentViewer({
 				return "Bono de Prenda";
 			case "PROMISSORY_NOTE":
 				return "Pagaré";
-			case "ENDORSEMENT":
-				return "Documento de Endoso";
 			default:
 				return document.type;
 		}
@@ -57,13 +55,6 @@ export function DocumentViewer({
 		if (document.type === "PROMISSORY_NOTE") {
 			// Pagaré: solo banco y cliente
 			return document.signedByBank && document.signedByClient;
-		}
-		if (document.type === "ENDORSEMENT") {
-			return (
-				document.signedByWarehouse &&
-				document.signedByClient &&
-				document.signedByBank
-			);
 		}
 		// CD y BP: warehouse y cliente
 		return document.signedByWarehouse && document.signedByClient;
@@ -149,7 +140,7 @@ export function DocumentViewer({
 							</div>
 						)}
 						{/* Endoso: todos */}
-						{document.type === "ENDORSEMENT" && (
+						{false && (
 							<div className="flex items-center gap-2">
 								{document.signedByBank ? (
 									<CheckCircle className="h-4 w-4 text-green-500" />

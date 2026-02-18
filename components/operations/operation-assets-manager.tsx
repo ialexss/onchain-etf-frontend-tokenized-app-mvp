@@ -44,8 +44,8 @@ export function OperationAssetsManager({
 		(org) => org.type === "WAREHOUSE"
 	);
 	
-	const isLiquidated = operationStatus === "LIQUIDATED";
-	const canReleaseAssets = isWarrant && isLiquidated;
+	const isReleased = operationStatus === "RELEASED" || operationStatus === "LIQUIDATED";
+	const canReleaseAssets = isWarrant && isReleased;
 	
 	// Estado para activos marcados como liberados
 	const [releasedAssets, setReleasedAssets] = useState<Set<number>>(new Set());
@@ -180,10 +180,9 @@ export function OperationAssetsManager({
 											/>
 										</TableHead>
 									)}
-									<TableHead>VIN/Serial</TableHead>
-									<TableHead>Descripción</TableHead>
-									<TableHead>Marcas</TableHead>
-									<TableHead>Cantidad</TableHead>
+								<TableHead>VIN/Serial</TableHead>
+								<TableHead>Descripción</TableHead>
+								<TableHead>Cantidad</TableHead>
 									<TableHead>Valor</TableHead>
 									<TableHead>Estado</TableHead>
 									<TableHead>Acciones</TableHead>
@@ -210,18 +209,15 @@ export function OperationAssetsManager({
 													/>
 												</TableCell>
 											)}
-											<TableCell className="font-medium">
-												{asset.vinSerial}
-											</TableCell>
-											<TableCell>
-												{asset.description || "-"}
-											</TableCell>
-											<TableCell>
-												{asset.brands || "-"}
-											</TableCell>
-											<TableCell>
-												{asset.quantity ? Math.floor(Number(asset.quantity)) : 1}
-											</TableCell>
+										<TableCell className="font-medium">
+											{asset.vinSerial}
+										</TableCell>
+										<TableCell>
+											{asset.description || "-"}
+										</TableCell>
+										<TableCell>
+											{asset.quantity ? Math.floor(Number(asset.quantity)) : 1}
+										</TableCell>
 											<TableCell>
 												${asset.value?.toLocaleString() || "0"}
 											</TableCell>

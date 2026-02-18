@@ -25,7 +25,6 @@ import {
 	LayoutGrid,
 	Table as TableIcon,
 	MapPin,
-	Tag,
 	Calendar,
 	FileText,
 	Building2,
@@ -33,9 +32,11 @@ import {
 	Eye,
 } from "lucide-react";
 import { CreateAssetDialog } from "@/components/assets/create-asset-dialog";
+import { DeliveryStatusBadge } from "@/components/operations/delivery-status-badge";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Separator } from "@/components/ui/separator";
+import { AssetDeliveryStatus, AssetStatus } from "@/types/asset";
 
 type ViewMode = "table" | "cards";
 
@@ -131,10 +132,8 @@ export default function AssetsPage() {
 								<TableHeader>
 									<TableRow>
 										<TableHead>ID</TableHead>
-										<TableHead>Nombre</TableHead>
 										<TableHead>VIN/Serial</TableHead>
 										<TableHead>Descripción</TableHead>
-										<TableHead>Marcas</TableHead>
 										<TableHead>Cantidad</TableHead>
 										<TableHead>Valor</TableHead>
 										<TableHead>Almacén</TableHead>
@@ -151,27 +150,21 @@ export default function AssetsPage() {
 								<TableBody>
 									{assets.map((asset: any) => (
 										<TableRow key={asset.id}>
-											<TableCell className="font-medium">
-												#{asset.id}
-											</TableCell>
-											<TableCell className="font-medium">
-												{asset.name || "-"}
-											</TableCell>
-											<TableCell className="font-medium">
-												{asset.vinSerial}
-											</TableCell>
-											<TableCell>
-												<div>
-													{asset.description && (
-														<p className="text-sm">
-															{asset.description}
-														</p>
-													)}
-												</div>
-											</TableCell>
-											<TableCell>
-												{asset.brands || "-"}
-											</TableCell>
+										<TableCell className="font-medium">
+											#{asset.id}
+										</TableCell>
+										<TableCell className="font-medium">
+											{asset.vinSerial}
+										</TableCell>
+										<TableCell>
+											<div>
+												{asset.description && (
+													<p className="text-sm">
+														{asset.description}
+													</p>
+												)}
+											</div>
+										</TableCell>
 											<TableCell>
 												{asset.quantity
 													? Math.floor(
@@ -305,59 +298,28 @@ export default function AssetsPage() {
 											<div className="flex items-start justify-between">
 												<div className="flex-1">
 													<CardTitle className="text-lg flex items-center gap-2">
-														{asset.iconUrl ? (
-															<div className="relative w-10 h-10 rounded overflow-hidden bg-muted flex items-center justify-center">
-																<img
-																	src={
-																		asset.iconUrl
-																	}
-																	alt={
-																		asset.name ||
-																		asset.description ||
-																		asset.vinSerial
-																	}
-																	className="w-full h-full object-cover"
-																	onError={(
-																		e
-																	) => {
-																		(
-																			e.target as HTMLImageElement
-																		).style.display =
-																			"none";
-																	}}
-																/>
-															</div>
-														) : (
-															<Package className="h-5 w-5" />
-														)}
+														<Package className="h-5 w-5" />
 														<div>
 															<p className="font-medium">
-																{asset.name ||
-																	asset.vinSerial}
+																{asset.vinSerial}
 															</p>
 															<p className="text-xs text-muted-foreground">
-																{asset.name
-																	? `VIN: ${asset.vinSerial}`
-																	: `ID: #${asset.id}`}
+																ID: #{asset.id}
 															</p>
 														</div>
 													</CardTitle>
 												</div>
-												{getStatusBadge(asset.status)}
+												<div className="flex flex-col items-end gap-2">
+													{getStatusBadge(asset.status)}
+													{asset.status !== AssetStatus.BURNED && (
+														<DeliveryStatusBadge
+															status={asset.deliveryStatus || (asset.token ? AssetDeliveryStatus.RED : AssetDeliveryStatus.GREEN)}
+														/>
+													)}
+												</div>
 											</div>
 										</CardHeader>
 										<CardContent className="space-y-4">
-											{/* Nombre */}
-											{asset.name && (
-												<div>
-													<p className="text-sm font-medium text-muted-foreground">
-														Nombre
-													</p>
-													<p className="text-sm font-semibold">
-														{asset.name}
-													</p>
-												</div>
-											)}
 											{/* Descripción */}
 											{asset.description && (
 												<div>
@@ -377,8 +339,7 @@ export default function AssetsPage() {
 														Valor
 													</p>
 													<p className="text-lg font-bold">
-														$
-														{asset.value?.toLocaleString()}
+														${Number(asset.value)?.toLocaleString()}
 													</p>
 												</div>
 												{asset.quantity && (
@@ -396,6 +357,19 @@ export default function AssetsPage() {
 													</div>
 												)}
 											</div>
+
+											{/* Estado del Token */}
+											{asset.token && (
+												<div className="flex items-center justify-between p-2 bg-blue-50 dark:bg-blue-950 rounded">
+													<span className="text-xs font-medium flex items-center gap-1">
+														<Coins className="h-3 w-3" />
+														Token
+													</span>
+													<Badge className="bg-blue-500">
+														#{asset.token.id}
+													</Badge>
+												</div>
+											)}
 
 											<Separator />
 
@@ -427,42 +401,20 @@ export default function AssetsPage() {
 												</div>
 											</div>
 
-											{/* Marcas y Localización */}
-											{(asset.brands ||
-												asset.location) && (
+											{/* Localización */}
+											{asset.location && (
 												<>
 													<Separator />
-													<div className="space-y-2">
-														{asset.brands && (
-															<div className="flex items-center gap-2 text-sm">
-																<Tag className="h-4 w-4 text-muted-foreground" />
-																<div className="flex-1">
-																	<p className="text-xs text-muted-foreground">
-																		Marcas
-																	</p>
-																	<p className="font-medium">
-																		{
-																			asset.brands
-																		}
-																	</p>
-																</div>
-															</div>
-														)}
-														{asset.location && (
-															<div className="flex items-center gap-2 text-sm">
-																<MapPin className="h-4 w-4 text-muted-foreground" />
-																<div className="flex-1">
-																	<p className="text-xs text-muted-foreground">
-																		Localización
-																	</p>
-																	<p className="font-medium">
-																		{
-																			asset.location
-																		}
-																	</p>
-																</div>
-															</div>
-														)}
+													<div className="flex items-center gap-2 text-sm">
+														<MapPin className="h-4 w-4 text-muted-foreground" />
+														<div className="flex-1">
+															<p className="text-xs text-muted-foreground">
+																Localización
+															</p>
+															<p className="font-medium">
+																{asset.location}
+															</p>
+														</div>
 													</div>
 												</>
 											)}

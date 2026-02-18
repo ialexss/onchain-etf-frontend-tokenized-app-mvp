@@ -93,7 +93,7 @@ export default function ProfilePage() {
 			SIGNED: "Firmado",
 			TOKENIZED: "Tokenizado",
 			ACTIVE: "Activo",
-			LIQUIDATED: "Liquidado",
+			LIQUIDATED: "Liberado",
 			RELEASED: "Liberado",
 		};
 
