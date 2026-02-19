@@ -38,6 +38,11 @@ export interface Document {
 	isUploaded?: boolean; // true si se subió, false si se generó
 	uploadedAt?: Date; // Cuándo se subió el documento
 	extractedData?: any; // Campos extraídos del PDF (JSON)
+	// Campos eSignAnywhere
+	esignEnvelopeId?: string;
+	esignStatus?: string;
+	signedPdfPath?: string;
+	auditTrailPath?: string;
 	createdAt: Date;
 	updatedAt: Date;
 }

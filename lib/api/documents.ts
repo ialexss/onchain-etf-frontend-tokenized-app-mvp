@@ -37,6 +37,13 @@ export const documentsApi = {
       responseType: 'blob'
     });
     return data;
+  },
+  
+  downloadAuditTrail: async (documentId: number): Promise<Blob> => {
+    const { data } = await apiClient.get(`/documents/${documentId}/download-audit-trail`, {
+      responseType: 'blob'
+    });
+    return data;
   }
 };
 

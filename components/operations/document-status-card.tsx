@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Document } from "@/types/document";
+import { Document as AppDocument } from "@/types/document";
 import { UploadDocumentDialog } from "./upload-document-dialog";
 import {
 	FileText,
@@ -14,12 +14,15 @@ import {
 	XCircle,
 	Download,
 	AlertCircle,
+	ShieldCheck,
+	ScrollText,
+	Clock,
 } from "lucide-react";
 import { documentsApi } from "@/lib/api/documents";
 import { toast } from "sonner";
 
 interface DocumentStatusCardProps {
-	document?: Document;
+	document?: AppDocument;
 	documentType: "CD" | "BP" | "PAGARE" | "PROMISSORY_NOTE";
 	operationId: number;
 	canUpload?: boolean;
@@ -53,22 +56,37 @@ export function DocumentStatusCard({
 	const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
 	const documentTypeLabel = getDocumentTypeLabel(documentType);
 
+	const downloadFile = (blob: Blob, fileName: string, successMessage: string) => {
+		const url = window.URL.createObjectURL(blob);
+		const a = window.document.createElement("a");
+		a.href = url;
+		a.download = fileName;
+		window.document.body.appendChild(a);
+		a.click();
+		window.URL.revokeObjectURL(url);
+		window.document.body.removeChild(a);
+		toast.success(successMessage);
+	};
+
 	const handleDownload = async () => {
 		if (!document?.id) return;
 
 		try {
 			const blob = await documentsApi.downloadPDF(document.id);
-			const url = window.URL.createObjectURL(blob);
-			const a = window.document.createElement("a");
-			a.href = url;
-			a.download = `${documentType}-${document.id}.pdf`;
-			window.document.body.appendChild(a);
-			a.click();
-			window.URL.revokeObjectURL(url);
-			window.document.body.removeChild(a);
-			toast.success("PDF descargado exitosamente");
+			downloadFile(blob, `${documentType}-${document.id}.pdf`, "PDF descargado exitosamente");
 		} catch (error: any) {
 			toast.error("Error al descargar el PDF");
+		}
+	};
+
+	const handleDownloadAuditTrail = async () => {
+		if (!document?.id) return;
+
+		try {
+			const blob = await documentsApi.downloadAuditTrail(document.id);
+			downloadFile(blob, `auditoria-${documentType}-${document.id}.pdf`, "Certificado de auditoría descargado");
+		} catch (error: any) {
+			toast.error("Error al descargar el certificado de auditoría");
 		}
 	};
 
@@ -163,6 +181,23 @@ export function DocumentStatusCard({
 					</Badge>
 				);
 			}
+		}
+
+		// eSignAnywhere status
+		if (document.esignStatus === "COMPLETED") {
+			badges.push(
+				<Badge key="esign-completed" variant="default" className="bg-blue-600">
+					<ShieldCheck className="h-3 w-3 mr-1" />
+					Firma Oficial OK
+				</Badge>
+			);
+		} else if (document.esignEnvelopeId && document.esignStatus !== "COMPLETED") {
+			badges.push(
+				<Badge key="esign-progress" variant="outline" className="border-blue-400 text-blue-600">
+					<Clock className="h-3 w-3 mr-1" />
+					Proceso Oficial: {document.esignStatus || 'Pendiente'}
+				</Badge>
+			);
 		}
 
 		return <div className="flex flex-wrap gap-2">{badges}</div>;
@@ -277,16 +312,29 @@ export function DocumentStatusCard({
 								</div>
 							</div>
 
-							<div className="flex gap-2">
+							<div className="flex flex-wrap gap-2">
 								<Button
 									variant="outline"
 									size="sm"
 									onClick={handleDownload}
 								>
 									<Download className="h-4 w-4 mr-2" />
-									Descargar PDF
+									Descargar {document.signedPdfPath ? 'Firmado' : 'PDF'}
 								</Button>
-								{canUpload && (
+								
+								{document.auditTrailPath && (
+									<Button
+										variant="outline"
+										size="sm"
+										className="border-blue-200 text-blue-700 hover:bg-blue-50"
+										onClick={handleDownloadAuditTrail}
+									>
+										<ScrollText className="h-4 w-4 mr-2" />
+										Auditoría
+									</Button>
+								)}
+
+								{canUpload && !document.esignEnvelopeId && (
 									<Button
 										variant="outline"
 										size="sm"
