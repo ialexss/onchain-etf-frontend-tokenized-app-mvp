@@ -41,18 +41,21 @@ export function Breadcrumbs({ items, className }: BreadcrumbsProps) {
 					overview: "Resumen",
 					new: "Nueva Operación",
 					wallet: "Mi Wallet",
+					"api-keys": "API Keys",
 				};
 
 				// Si es un ID numérico, mantenerlo como está
 				if (/^\d+$/.test(segment)) {
 					label = `#${segment}`;
 				} else {
-					label = labelMap[segment] || segment.charAt(0).toUpperCase() + segment.slice(1);
+					label =
+						labelMap[segment] ||
+						segment.charAt(0).toUpperCase() + segment.slice(1);
 				}
 
 				return {
 					label,
-					href: index < array.length - 1 ? href : undefined, // Último item no tiene link
+					href: index < array.length - 1 ? href : undefined,
 				};
 			});
 
@@ -79,11 +82,12 @@ export function Breadcrumbs({ items, className }: BreadcrumbsProps) {
 							{item.label}
 						</Link>
 					) : (
-						<span className="text-foreground font-medium">{item.label}</span>
+						<span className="text-foreground font-medium">
+							{item.label}
+						</span>
 					)}
 				</div>
 			))}
 		</nav>
 	);
 }
-

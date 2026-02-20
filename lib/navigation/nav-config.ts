@@ -12,6 +12,7 @@ import {
 	Briefcase,
 	Plus,
 	Wallet,
+	Key,
 } from "lucide-react";
 import { OrganizationType } from "@/types/organization";
 
@@ -109,6 +110,13 @@ export const navigationSections: NavSection[] = [
 				href: "/dashboard/reports",
 				icon: BarChart3,
 				permission: "reports:read",
+				organizationTypes: [OrganizationType.ETF],
+			},
+			{
+				title: "API Keys",
+				href: "/dashboard/api-keys",
+				icon: Key,
+				permission: "api_keys:read",
 				organizationTypes: [OrganizationType.ETF],
 			},
 		],
