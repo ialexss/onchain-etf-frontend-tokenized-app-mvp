@@ -76,7 +76,7 @@ export default function AssetsPage() {
 					</p>
 				</div>
 				{hasPermission("assets:create") && (
-					<Button onClick={() => setCreateDialogOpen(true)}>
+					<Button onClick={() => setCreateDialogOpen(true)} disabled>
 						<Plus className="mr-2 h-4 w-4" />
 						Crear Activo
 					</Button>
@@ -95,8 +95,7 @@ export default function AssetsPage() {
 								size="sm"
 								onClick={() => setViewMode("table")}
 							>
-								<TableIcon className="h-4 w-4 mr-2" />
-								Tabla
+								<TableIcon className="h-4 w-4" />
 							</Button>
 							<Button
 								variant={
@@ -105,8 +104,7 @@ export default function AssetsPage() {
 								size="sm"
 								onClick={() => setViewMode("cards")}
 							>
-								<LayoutGrid className="h-4 w-4 mr-2" />
-								Cards
+								<LayoutGrid className="h-4 w-4" />
 							</Button>
 						</div>
 					</div>
@@ -150,28 +148,28 @@ export default function AssetsPage() {
 								<TableBody>
 									{assets.map((asset: any) => (
 										<TableRow key={asset.id}>
-										<TableCell className="font-medium">
-											#{asset.id}
-										</TableCell>
-										<TableCell className="font-medium">
-											{asset.vinSerial}
-										</TableCell>
-										<TableCell>
-											<div>
-												{asset.description && (
-													<p className="text-sm">
-														{asset.description}
-													</p>
-												)}
-											</div>
-										</TableCell>
+											<TableCell className="font-medium">
+												#{asset.id}
+											</TableCell>
+											<TableCell className="font-medium">
+												{asset.vinSerial}
+											</TableCell>
+											<TableCell>
+												<div>
+													{asset.description && (
+														<p className="text-sm">
+															{asset.description}
+														</p>
+													)}
+												</div>
+											</TableCell>
 											<TableCell>
 												{asset.quantity
 													? Math.floor(
 															Number(
-																asset.quantity
-															)
-													  )
+																asset.quantity,
+															),
+														)
 													: 1}
 											</TableCell>
 											<TableCell className="font-semibold">
@@ -265,10 +263,10 @@ export default function AssetsPage() {
 												{asset.createdAt &&
 													format(
 														new Date(
-															asset.createdAt
+															asset.createdAt,
 														),
 														"dd/MM/yyyy",
-														{ locale: es }
+														{ locale: es },
 													)}
 											</TableCell>
 											<TableCell>
@@ -301,7 +299,9 @@ export default function AssetsPage() {
 														<Package className="h-5 w-5" />
 														<div>
 															<p className="font-medium">
-																{asset.vinSerial}
+																{
+																	asset.vinSerial
+																}
 															</p>
 															<p className="text-xs text-muted-foreground">
 																ID: #{asset.id}
@@ -310,10 +310,18 @@ export default function AssetsPage() {
 													</CardTitle>
 												</div>
 												<div className="flex flex-col items-end gap-2">
-													{getStatusBadge(asset.status)}
-													{asset.status !== AssetStatus.BURNED && (
+													{getStatusBadge(
+														asset.status,
+													)}
+													{asset.status !==
+														AssetStatus.BURNED && (
 														<DeliveryStatusBadge
-															status={asset.deliveryStatus || (asset.token ? AssetDeliveryStatus.RED : AssetDeliveryStatus.GREEN)}
+															status={
+																asset.deliveryStatus ||
+																(asset.token
+																	? AssetDeliveryStatus.RED
+																	: AssetDeliveryStatus.GREEN)
+															}
 														/>
 													)}
 												</div>
@@ -339,7 +347,10 @@ export default function AssetsPage() {
 														Valor
 													</p>
 													<p className="text-lg font-bold">
-														${Number(asset.value)?.toLocaleString()}
+														$
+														{Number(
+															asset.value,
+														)?.toLocaleString()}
 													</p>
 												</div>
 												{asset.quantity && (
@@ -350,8 +361,8 @@ export default function AssetsPage() {
 														<p className="text-lg font-semibold">
 															{Math.floor(
 																Number(
-																	asset.quantity
-																)
+																	asset.quantity,
+																),
 															)}
 														</p>
 													</div>
@@ -519,10 +530,10 @@ export default function AssetsPage() {
 													{asset.createdAt &&
 														format(
 															new Date(
-																asset.createdAt
+																asset.createdAt,
 															),
 															"dd/MM/yyyy",
-															{ locale: es }
+															{ locale: es },
 														)}
 												</div>
 												{asset.updatedAt &&
@@ -532,10 +543,10 @@ export default function AssetsPage() {
 															Actualizado:{" "}
 															{format(
 																new Date(
-																	asset.updatedAt
+																	asset.updatedAt,
 																),
 																"dd/MM/yyyy",
-																{ locale: es }
+																{ locale: es },
 															)}
 														</span>
 													)}
